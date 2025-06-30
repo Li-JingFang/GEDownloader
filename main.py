@@ -1,6 +1,5 @@
 import cv2
 from downloader.downloader_tblr import get_img_tblr
-from downloader.downloader_center import get_img_center
 
 if __name__ == '__main__':
     save_file = 'save_files/whu.jpg'
