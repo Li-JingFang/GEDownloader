@@ -151,5 +151,5 @@ def get_img_center_gdal_savetmp(lng, lat, tiff_filename,
             if failure_count >= (nX * nY) / 10:
                 return None
     status = run_with_concurrent(download_save2tmpdir, retry_list, "thread", min(nproc, len(retry_list)))
-    merge2tiff(tmpdir, tiff_filename, width, height)
+    # merge2tiff(tmpdir, tiff_filename, width, height)
     print("保存完成：" + tiff_filename)
