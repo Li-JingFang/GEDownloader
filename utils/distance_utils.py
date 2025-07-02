@@ -68,5 +68,19 @@ def ab_distance(a_lat, a_lng, b_lat, b_lng):
     return math.sqrt(lat_dis ** 2 + lng_dis ** 2)
 
 
+def calArea(loc_tl, loc_br):
+    """
+    计算区域面积
+    :param loc_tl: 左上角经纬度 [lng, lat]
+    :param loc_br: 右下角经纬度 [lng, lat]
+    :return: 面积（平方公里）
+    """
+    center_lat = (loc_tl[1] + loc_br[1]) / 2
+    width_km = lng_degree2km(loc_br[0] - loc_tl[0], center_lat)
+    height_km = lat_degree2km(loc_tl[1] - loc_br[1])
+    area = width_km * height_km
+    return area
+
+
 if __name__ == "__main__":
     print(lng_km2degree(dis_km=100, center_lat=39))

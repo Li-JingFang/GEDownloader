@@ -35,6 +35,9 @@ def download_save2tmpdir(url, headers, x, y, tmpdir, pbar):
     pbar.update(1)
     response = None
     retry = 0
+    img_savepath = os.path.join(tmpdir, f"{x}_{y}.jpg")
+    if os.path.exists(img_savepath):
+        return 0
     while response is None or response.status_code != 200:
         if retry == retry_limit:
             print("Failed to get {} with retry={}.".format(url, retry))
@@ -48,7 +51,7 @@ def download_save2tmpdir(url, headers, x, y, tmpdir, pbar):
         input_image_data = response.content
         np_arr = np.asarray(bytearray(input_image_data), np.uint8).reshape(1, -1)
         tile = cv2.imdecode(np_arr, cv2.IMREAD_UNCHANGED)
-        cv2.imwrite(os.path.join(tmpdir, f"{x}_{y}.jpg"), tile)
+        cv2.imwrite(img_savepath, tile)
     except Exception as e:
         print(str(e))
         return -1

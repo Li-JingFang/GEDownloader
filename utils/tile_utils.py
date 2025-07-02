@@ -1,5 +1,6 @@
 import math
 
+
 # 像素分辨率
 def getResolution(level):
     return 156543.03 * math.pow(2, -level)
@@ -14,7 +15,7 @@ def lnglatToTile(lng, lat, level):
 
 # 瓦片转经纬度
 def tileToLnglat(tileX, tileY, level):
-    level -= 1
+    # level -= 1
     lng = tileX / math.pow(2, level) * 360 - 180
     lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * tileY / math.pow(2, level)))))
     return lng, lat
@@ -35,6 +36,7 @@ def pixelToLnglat(tileX, tileY, pixelX, pixelY, level):
     lat = math.degrees(math.atan(math.sinh(math.pi - 2 * math.pi * (tileY + pixelY / 256) / math.pow(2, level))))
     return lng, lat
 
+
 # bing瓦片坐标转换
 def TileXYToQuadKey(tileX, tileY, level):
     quadKey = ''
@@ -48,3 +50,10 @@ def TileXYToQuadKey(tileX, tileY, level):
             digit += 2
         quadKey += chr(digit)
     return quadKey
+
+
+def getGeoTransform(tileX_tl, tileY_tl, nX, nY, level):
+    lng_lt, lat_lt = tileToLnglat(tileX_tl, tileY_tl, level)
+    lng_rb, lat_rb = tileToLnglat(tileX_tl + nX, tileY_tl + nY, level)
+    geoTransform = (lng_lt, (lng_rb - lng_lt) / (nX * 256), 0, lat_lt, 0, (lat_rb - lat_lt) / (nY * 256))
+    return geoTransform
