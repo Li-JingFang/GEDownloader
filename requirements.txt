@@ -1,4 +1,6 @@
-numpy
+numpy==1.26.4
 tqdm
 opencv-python
 requests
+pandas
+setuptools==57.5.0
