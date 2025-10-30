@@ -49,6 +49,56 @@ def get_img_center(lng, lat, datasource='google', dlng_km=0.1, dlat_km=0.1, zoom
     return canvas
 
 
+# 基于中心点与目标像素尺寸自动决定边界并下载
+def get_img_center_by_pixels(lng, lat,
+                             desired_width_px=20000,
+                             desired_height_px=None,
+                             datasource='google',
+                             zoom=19,
+                             nproc=8):
+    center_lng = lng
+    center_lat = lat
+
+    if desired_height_px is None:
+        desired_height_px = desired_width_px
+
+    # 计算需要的瓦片数量（256像素一瓦片），并尽量取奇数以更好地居中
+    nX = max(1, int(round(desired_width_px / 256)))
+    nY = max(1, int(round(desired_height_px / 256)))
+    if nX % 2 == 0:
+        nX += 1
+    if nY % 2 == 0:
+        nY += 1
+
+    # 以中心点所在瓦片为基准，向四周扩展
+    tileX_c, tileY_c = tile_utils.lnglatToTile(center_lng, center_lat, zoom)
+    tileX_tl = tileX_c - nX // 2
+    tileY_tl = tileY_c - nY // 2
+
+    # 最终的大图
+    canvas = np.zeros((nY * 256, nX * 256, 3), dtype=np.uint8)
+
+    with tqdm(total=nX * nY) as pbar:
+        failure_count = 0
+        retry_list = []
+        for x in range(nX):
+            task_list = []
+            for y in range(nY):
+                url, headers = format_url(datasource, tileX_tl, x, tileY_tl, y, zoom)
+                task_list.append([url, headers, x, y, canvas, pbar])
+            # 多线程并发
+            status = run_with_concurrent(download, task_list, "thread", min(nproc, len(task_list)))
+            for i in range(len(status)):
+                if status[i] != 0:
+                    retry_list.append(task_list[i])
+                    failure_count += 1
+            if failure_count >= (nX * nY) / 10:
+                return None
+    status = run_with_concurrent(download, retry_list, "thread", min(nproc, len(retry_list)))
+
+    return canvas
+
+
 # 下载后直接写入tif文件，适合用于小图下载
 def get_img_center_gdal(lng, lat, tiff_filename, datasource='google', dlng_km=0.1, dlat_km=0.1, zoom=19, nproc=8):
     center_lng = lng
