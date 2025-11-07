@@ -238,3 +238,38 @@ def get_img_center_gdal_GTiff(lng, lat, tiff_filename,
     geoTransform = tile_utils.getGeoTransform(tileX_tl, tileY_tl, nX, nY, zoom)
     mergeJPG2TIF(jpg_dir, tiff_filename, width, height, geoTransform)
     print("保存完成：" + tiff_filename)
+
+
+# 获取以中心为准、像素尺寸为(desired_width_px, desired_height_px)的矩形区域四角经纬度坐标
+def get_pol(lng, lat,
+            desired_width_px=20000,
+            desired_height_px=None,
+            zoom=19):
+    center_lng = lng
+    center_lat = lat
+    if desired_height_px is None:
+        desired_height_px = desired_width_px
+    nX = max(1, int(round(desired_width_px / 256)))
+    nY = max(1, int(round(desired_height_px / 256)))
+    if nX % 2 == 0:
+        nX += 1
+    if nY % 2 == 0:
+        nY += 1
+    tileX_c, tileY_c = tile_utils.lnglatToTile(center_lng, center_lat, zoom)
+    tileX_tl = tileX_c - nX // 2
+    tileY_tl = tileY_c - nY // 2
+    # 左上角
+    lng_tl, lat_tl = tile_utils.pixelToLnglat(tileX_tl, tileY_tl, 0, 0, zoom)
+    # 右上角
+    lng_tr, lat_tr = tile_utils.pixelToLnglat(tileX_tl + nX - 1, tileY_tl, 255, 0, zoom)
+    # 右下角
+    lng_br, lat_br = tile_utils.pixelToLnglat(tileX_tl + nX - 1, tileY_tl + nY - 1, 255, 255, zoom)
+    # 左下角
+    lng_bl, lat_bl = tile_utils.pixelToLnglat(tileX_tl, tileY_tl + nY - 1, 0, 255, zoom)
+    # 顺时针返回四角
+    return [
+        [lng_tl, lat_tl],  # 左上
+        [lng_tr, lat_tr],  # 右上
+        [lng_br, lat_br],  # 右下
+        [lng_bl, lat_bl]   # 左下
+    ]
